@@ -1,0 +1,295 @@
+<Window
+    x:Class="UtilitaryBTSink.Views.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="UtilitaryBTSink">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Merged Windows title bar (drag region + compact buttons outside the drag area) -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="140" />
+            </Grid.ColumnDefinitions>
+
+            <Grid x:Name="AppTitleBar"
+                  Grid.Column="0"
+                  Background="Transparent"
+                  Padding="16,0,8,0">
+                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <FontIcon Glyph="&#xE702;" FontSize="14" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                    <TextBlock Text="UtilitaryBTSink"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center" />
+                    <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="8,2"
+                            VerticalAlignment="Center">
+                        <TextBlock x:Name="HeaderStatusText"
+                                   Text="0 active"
+                                   FontSize="11"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </Border>
+                </StackPanel>
+            </Grid>
+
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        Spacing="6"
+                        VerticalAlignment="Center"
+                        Margin="0,0,8,0">
+                <ToggleButton x:Name="SettingsToggleBtn"
+                              Padding="10,4"
+                              FontSize="12"
+                              Click="OnSettingsPanelToggled"
+                              ToolTipService.ToolTip="Show or hide settings">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE713;" FontSize="12" />
+                        <TextBlock Text="Settings" />
+                    </StackPanel>
+                </ToggleButton>
+
+                <ToggleButton x:Name="LogsToggleBtn"
+                              Padding="10,4"
+                              FontSize="12"
+                              Click="OnLogsPanelToggled"
+                              ToolTipService.ToolTip="Show or hide diagnostic logs">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE7BC;" FontSize="12" />
+                        <TextBlock Text="Logs" />
+                    </StackPanel>
+                </ToggleButton>
+            </StackPanel>
+        </Grid>
+
+        <!-- Clean main content -->
+        <Grid Grid.Row="1" Padding="18,8,18,16" RowSpacing="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Paired Bluetooth Devices List -->
+            <Border Grid.Row="0"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="14">
+                <Grid RowSpacing="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Spacing="2">
+                        <TextBlock Text="Paired Bluetooth Devices"
+                                   FontSize="15"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Text="Enable Auto for automatic connection and use ↻ to refresh a single device's audio stream."
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+
+                    <ListView x:Name="DevicesListView" Grid.Row="1" SelectionMode="None">
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="Padding" Value="0,3" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        Padding="12,10">
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding StatusLabel}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+
+                                        <ToggleSwitch Grid.Column="1"
+                                                      OnContent="Auto"
+                                                      OffContent="Manual"
+                                                      MinWidth="0"
+                                                      IsOn="{Binding IsAutoConnectEnabled}"
+                                                      Tag="{Binding Id}"
+                                                      Toggled="OnDeviceAutoConnectToggled" />
+
+                                        <Button Grid.Column="2"
+                                                Content="↻"
+                                                ToolTipService.ToolTip="Reconnect only this device"
+                                                Tag="{Binding Id}"
+                                                Click="OnDeviceReconnectClicked"
+                                                MinWidth="38" />
+
+                                        <Button Grid.Column="3"
+                                                Content="{Binding ActionButtonText}"
+                                                Tag="{Binding Id}"
+                                                Click="OnDeviceActionClicked"
+                                                MinWidth="102" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </Border>
+
+            <!-- Settings Panel (collapsed by default) -->
+            <Border x:Name="SettingsPanel"
+                    Grid.Row="1"
+                    Visibility="Collapsed"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="14">
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Settings &amp; Stability" FontSize="14" FontWeight="SemiBold" />
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <ToggleSwitch x:Name="AutoReconnectToggle"
+                                      Grid.Column="0"
+                                      Header="Auto-connect saved devices on launch"
+                                      Toggled="OnAutoReconnectToggled" />
+
+                        <ToggleSwitch x:Name="StartupToggle"
+                                      Grid.Column="1"
+                                      Header="Start minimized with Windows"
+                                      Toggled="OnStartupToggled" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <NumberBox x:Name="SilenceThresholdBox"
+                                   Grid.Column="0"
+                                   Header="Keep-Alive threshold (seconds)"
+                                   Minimum="5" Maximum="120" SpinButtonPlacementMode="Compact"
+                                   ValueChanged="OnThresholdChanged" />
+
+                        <NumberBox x:Name="PhantomTimeoutBox"
+                                   Grid.Column="1"
+                                   Header="Recovery timeout (seconds)"
+                                   Minimum="10" Maximum="180" SpinButtonPlacementMode="Compact"
+                                   ValueChanged="OnThresholdChanged" />
+                    </Grid>
+
+                    <TextBlock x:Name="TelemetrySummaryText"
+                               Text="Waiting for devices..."
+                               TextWrapping="Wrap"
+                               FontSize="11"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Logs Panel (collapsed by default, current + last session only) -->
+            <Border x:Name="LogsPanel"
+                    Grid.Row="2"
+                    Visibility="Collapsed"
+                    Height="210"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="12">
+                <Grid RowSpacing="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock x:Name="LogTitleText" Text="Log — Current Session" FontWeight="SemiBold" VerticalAlignment="Center" />
+                            <ToggleButton x:Name="LogSourceToggleBtn"
+                                          Content="View Last Session"
+                                          FontSize="11"
+                                          Padding="8,3"
+                                          Click="OnLogSourceToggled" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                            <Button Content="Diagnose" FontSize="12" Padding="8,4" Click="OnDiagnoseAudioClicked" />
+                            <Button Content="Copy" FontSize="12" Padding="8,4" Style="{ThemeResource AccentButtonStyle}" Click="OnCopyLogClicked" />
+                            <Button Content="Folder" FontSize="12" Padding="8,4" Click="OnOpenLogFolderClicked" />
+                            <Button Content="Clear" FontSize="12" Padding="8,4" Click="OnClearLogClicked" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Grid.Row="1"
+                            Background="{ThemeResource LayerFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="8">
+                        <ScrollViewer x:Name="LogScrollViewer" VerticalScrollBarVisibility="Auto">
+                            <TextBlock x:Name="DiagnosticLogText"
+                                       FontFamily="Consolas"
+                                       FontSize="11"
+                                       TextWrapping="Wrap" />
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Bottom action and status bar -->
+            <Grid Grid.Row="3" ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
+                    <Button Content="Connect Saved" Style="{ThemeResource AccentButtonStyle}" Click="OnConnectSavedClicked" />
+                    <Button Content="Disconnect All" Click="OnDisconnectAllClicked" />
+                </StackPanel>
+
+                <TextBlock x:Name="DiagnosticFooterText"
+                           Grid.Column="1"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Right"
+                           TextTrimming="CharacterEllipsis"
+                           FontSize="12"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           Text="Ready to receive Bluetooth audio." />
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
